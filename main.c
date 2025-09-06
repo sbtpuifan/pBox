@@ -10,15 +10,9 @@
 #include "piuio_ws2812.h"
 #endif
 
-// Switch -> PIUIO input/output bytes mappings
-// And the offset between the index of the pinSwitch array and the bit position in the input byte to map that input pin to
-// (don't touch)
-#ifdef ENABLE_BUTTON_BOARD // The mappings change between the piuio and button board
+// This fork focuses only on button board code. So, we don't need to check if it's a button board
 const uint8_t pos[]      = { 1, 0, 3, 0, 2 }; // Map L, O, S, O, R -> O, L, R, S
 const uint8_t lightpos[] = { 2, 3, 0, 3, 1 }; // Map L, O, S, O, R -> S, L, R, O
-#else
-const uint8_t pos[] = { 3, 0, 2, 1, 4 }; // Map DL, UL, C, UR, DR -> UL, UR, C, DL, DR
-#endif
 
 // PIUIO input and output data
 uint8_t inputData[8] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
@@ -48,8 +42,6 @@ void piuio_task(void) {
     ws2812_lock_mtx();
     #endif
 
-    // P1 / P2 inputs
-    #ifdef ENABLE_BUTTON_BOARD // Button board only uses 1 byte for all the inputs
     for (int i = 0; i < 5; i++) {
         uint8_t* btn = &inputData[PLAYER_1];
 		// Extra logic - UL/UR should both map to select (for LX-style or PicoFX-based button boards)
@@ -61,43 +53,13 @@ void piuio_task(void) {
 			*btn = gpio_get(pinSwitch[i+5]) ? tu_bit_set(*btn, pos[i]+4) : tu_bit_clear(*btn, pos[i]+4);
 		}
     }
-    
-    #else // For the pad IO, read inputs into two bytes, and read the test/service switches
-    for (int i = 0; i < 5; i++) {
-        uint8_t* p1 = &inputData[PLAYER_1];
-        uint8_t* p2 = &inputData[PLAYER_2];
-        *p1 = gpio_get(pinSwitch[i]) ? tu_bit_set(*p1, pos[i]) : tu_bit_clear(*p1, pos[i]);
-        *p2 = gpio_get(pinSwitch[i+5]) ? tu_bit_set(*p2, pos[i]) : tu_bit_clear(*p2, pos[i]);
-    }
 
-    // Test/Service buttons
-    inputData[CABINET] = gpio_get(pinSwitch[10]) ? tu_bit_set(inputData[1], 1) : tu_bit_clear(inputData[1], 1);
-    inputData[CABINET] = gpio_get(pinSwitch[11]) ? tu_bit_set(inputData[1], 6) : tu_bit_clear(inputData[1], 6);
-    #endif
-
-
-    // Write pad/button lamps
-	#ifdef ENABLE_BUTTON_BOARD // Button board only uses 1 byte for outputs
+    // Write button lamps
+	// Button board only uses 1 byte for outputs
 	for (int i = 0; i < 5; i++) {
 		gpio_put(pinLED[i], tu_bit_test(lamp.data[PLAYER_1], lightpos[i]+4));
 		gpio_put(pinLED[i+5], tu_bit_test(lamp.data[PLAYER_1], lightpos[i]));
-	}
-	
-	#else // Pad IO: Use both bytes
-	for (int i = 0; i < 5; i++) {
-		gpio_put(pinLED[i], tu_bit_test(lamp.data[PLAYER_1], pos[i]+2));
-		gpio_put(pinLED[i+5], tu_bit_test(lamp.data[PLAYER_2], pos[i]+2));
-	}
-	#endif
-	
-	
-
-    // Write the bass neon to the onboard LED for testing + kicks
-    gpio_put(25, lamp.bass_light);
-
-    #ifdef ENABLE_WS2812_SUPPORT
-    ws2812_unlock_mtx();
-    #endif
+	}	
 }
 
 int main(void) {
