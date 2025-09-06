@@ -11,7 +11,7 @@ You don't need many components to put one together:
  - 10x LEDs and appropriate resistors
 
 By default the pins are configured as shown below, but the pins can be changed in `piuio_config.h`.
-![Schematic](Schematic.png)
+(I'll do the schematic later. check piuio_config.h for pinouts by default)
 
 ## Firmware Setup
 [See the Pi Pico SDK repo](https://github.com/raspberrypi/pico-sdk) for instructions on preparing the build environment. All the required CMake files should already be present and ready for compilation.
