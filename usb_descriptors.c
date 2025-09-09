@@ -42,8 +42,7 @@
 // Device Descriptors
 //--------------------------------------------------------------------+
 
-// If button board mode is enabled, use the button board PID/VID
-#ifdef ENABLE_BUTTON_BOARD
+// no need to check BUTTON_BOARD_ENABLED def
 tusb_desc_device_t const desc_device =
         {
                 .bLength            = sizeof(tusb_desc_device_t),
@@ -67,34 +66,6 @@ tusb_desc_device_t const desc_device =
 
                 .bNumConfigurations = 0x01
         };
-
-// Otherwise, use the standard PIUIO PID/VID
-#else
-tusb_desc_device_t const desc_device =
-        {
-                .bLength            = sizeof(tusb_desc_device_t),
-                .bDescriptorType    = TUSB_DESC_DEVICE,
-                .bcdUSB             = 0x0100, // at least 2.1 or 3.x for BOS & webUSB
-
-                // Use Interface Association Descriptor (IAD) for CDC
-                // As required by USB Specs IAD's subclass must be common class (2) and protocol must be IAD (1)
-                .bDeviceClass       = 0xFF,
-                .bDeviceSubClass    = 0x00,
-                .bDeviceProtocol    = 0x00,
-                .bMaxPacketSize0    = CFG_TUD_ENDPOINT0_SIZE,
-
-                .idVendor           = 0x0547,
-                .idProduct          = 0x1002,
-                .bcdDevice          = 0x0100,
-
-                .iManufacturer      = 0x01,
-                .iProduct           = 0x02,
-                .iSerialNumber      = 0x03,
-
-                .bNumConfigurations = 0x01
-        };
-#endif
-
 // Invoked when received GET DEVICE DESCRIPTOR
 // Application return pointer to descriptor
 uint8_t const * tud_descriptor_device_cb(void)
@@ -144,10 +115,10 @@ uint8_t const * tud_descriptor_configuration_cb(uint8_t index)
 char const* string_desc_arr [] =
         {
                 (const char[]) { 0x09, 0x04 }, // 0: is supported language is English (0x0409)
-                "Andamirn'to",                     // 1: Manufacturer
-                "Andamirn'to PIUIO",              // 2: Product
-                "123456",                      // 3: Serials, should use chip ID
-                "PIUIO-pico"               // 4: Vendor Interface
+                "SBTpiufan",                     // 1: Manufacturer
+                "pBox",              // 2: Product
+                "150807",                      // 3: Serials, should use chip ID
+                "BBio-pico"               // 4: Vendor Interface
         };
 
 static uint16_t _desc_str[32];
